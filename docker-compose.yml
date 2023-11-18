@@ -2,9 +2,12 @@ version: '3'
 
 services:
   postgres:
-    image: postgis/postgis:15-3.3-alpine
+    build: .
     volumes:
       - postgres_postgis_data:/var/lib/postgresql/data/
+      - ./shapefiles:/shapefiles
+      - ./scripts:/scripts
+      - ./migrations:/migrations
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_USER: postgres

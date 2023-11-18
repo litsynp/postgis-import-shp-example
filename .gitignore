@@ -5,3 +5,7 @@
 
 # macOS
 .DS_Store
+
+# SQL and shapefiles
+shapefiles/
+migrations/
