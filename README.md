@@ -2,29 +2,49 @@
 
 Access interactive shell of the PostgreSQL container.
 
-```shell
-$ docker compose up -d
-```
+This project is using shapefiles from https://business.juso.go.kr/ as an example.
 
 For this example, we only run ctprvn, sig, and emd with the following command.
 
-```shell
-# generate sql for ctprvn, sig, emd
-$ docker compose exec postgres bash -c 'source ./scripts/generate_geom_sql.sh'
+First, place "구형의 도역 XX월 전체.zip" in the shapefiles/ directory.
 
-# run sql in migrations folder
-$ docker compose exec postgres bash -c 'for f in $(find migrations -name "*.sql"); do psql -U postgres -f $f; done'
+And then run the following command.
+
+```shell
+$ make create   # Create shapefiles under migrations/ and run the migrations
 ```
 
 ## Check the result
 
 ```shell
-$ docker compose exec postgres bash
+$ make shell
+```
+
+```shell
+$ psql -U postgres
 ```
 
 ```sql
-SELECT *, ST_AsGeoJSON(geom) AS geojson
-FROM tl_scco_sig LIMIT 1;
+SELECT gid,
+       emd_cd,
+       emd_eng_nm,
+       emd_kor_nm,
+       ST_AsGeoJSON(geom) AS geom -- Exclude this colum if not needed
+FROM tl_scco_emd;
+
+SELECT gid,
+       sig_cd,
+       sig_eng_nm,
+       sig_kor_nm,
+       ST_AsGeoJSON(geom) AS geom -- Exclude this colum if not needed
+FROM tl_scco_sig;
+
+SELECT gid,
+       ctprvn_cd,
+       ctp_eng_nm,
+       ctp_kor_nm,
+       ST_AsGeoJSON(geom) AS geom -- Exclude this colum if not needed
+FROM tl_scco_ctprvn;
 ```
 
 ![geojson](https://github.com/litsynp/postgis-spatial-index/assets/42485462/3ca7b00e-3eb1-43eb-8540-4b38a2d4ab5a)
@@ -41,6 +61,13 @@ where ST_Intersects(geom, ST_GeomFromText('POINT(126.9858 37.5600)', 4326));
 ```
 
 ![intersection query result](https://github.com/litsynp/postgis-spatial-index/assets/42485462/e255447e-0f79-4c66-8b7b-2c7cc33ef7a2)
+
+## Destroy the database
+
+```shell
+$ make destroy          # Cleans up shapefiles/ and drops the database
+$ make migration:clean  # Cleans up migrations/. Don't run if you want to keep the migrations
+```
 
 ## Tips
 
